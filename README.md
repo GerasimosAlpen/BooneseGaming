@@ -57,6 +57,53 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Task 3: Prometheus Telemetry Metrics
+
+### Implementation
+The application exposes raw Prometheus-format metrics at:
+
+```
+GET http://localhost:3030/metrics
+```
+
+Built with [`prom-client`](https://github.com/siimon/prom-client) in the `src/metrics/` module:
+
+| File | Purpose |
+|---|---|
+| `metrics.module.ts` | Registers the service and controller; imported in `app.module.ts` |
+| `metrics.service.ts` | Creates a `Registry` and calls `collectDefaultMetrics()` to collect Node.js process metrics |
+| `metrics.controller.ts` | `GET /metrics` route; returns the metrics with the registry's `Content-Type` header |
+
+Key metrics used by the Grafana dashboard (Task 4):
+
+| Metric | Description |
+|---|---|
+| `process_resident_memory_bytes` | Memory used by the application (bytes) |
+| `process_start_time_seconds` | Process start time (used to calculate uptime) |
+| `process_cpu_seconds_total` | Total CPU time consumed (used for CPU usage) |
+
+### Prometheus Configuration (`prometheus.yml`)
+
+| Setting | Value |
+|---|---|
+| Target | `localhost:3030` |
+| Metrics Path | `/metrics` |
+| Scrape Interval | `5s` |
+
+### How to Run
+1. Install dependencies and start the app:
+   ```
+   npm install
+   npm run start
+   ```
+2. Download the Prometheus binary from https://prometheus.io/download and extract it.
+3. From the Prometheus folder, run:
+   ```
+   .\prometheus.exe --config.file="<path to project>\prometheus.yml"
+   ```
+4. Open http://localhost:9090/targets and make sure the `boonese-gaming` job is **UP**.
+5. (Optional) In the Query tab, run `process_resident_memory_bytes` to see the data.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
